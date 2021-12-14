@@ -102,17 +102,13 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     # copy source data from static
     train = train_static.copy(deep=True)
     test = test_static.copy(deep=True)
-    # merge datasets for some exploration
-    df_merged = train.append(test).reset_index(drop=True)
     
     # Feature Engineering
-    
-    # 'Z' is free
+        # 'Z' is free
     train['Cabin'].fillna('Z', inplace=True)
     test['Cabin'].fillna('Z', inplace=True)
     
     # embarked
-    df_merged['Embarked'].unique()
     train['Embarked'].fillna('A', inplace=True)
     test['Embarked'].fillna('A', inplace=True)
     
@@ -121,7 +117,6 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     test['Fare'].fillna(0, inplace=True)
     
     # create feature from cabin
-    import string
     def contained_letter(value):
         for letter in string.ascii_lowercase:
             if letter.capitalize() in value:
@@ -129,7 +124,6 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
         return 'Z'
     train['Cabin'] = train['Cabin'].apply(lambda x: contained_letter(x))
     test['Cabin'] = test['Cabin'].apply(lambda x: contained_letter(x))
-    
     
     # prepare one-hot-encoded columns
     df_train_dummy = pd.get_dummies(train.drop(['Survived','PassengerId'], axis=1))
@@ -140,7 +134,6 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     df_train_dummy = df_train_dummy.reindex(columns=df_test_dummy.columns, fill_value=0)
     
     # age - imputate
-    from sklearn.impute import KNNImputer
     imputer = KNNImputer(n_neighbors=hp_knn_neighbors, weights="distance") # distance might be better than "uniform"
     imputer.fit(df_train_dummy) # In test set we wont know the "survived" feature and "PassengerId" is no use for imputation
     # train
@@ -149,7 +142,6 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     test_dummy = pd.DataFrame(imputer.transform(df_test_dummy), columns=df_test_dummy.columns)
     
     # Preprocessing
-    from sklearn.preprocessing import Normalizer
     normalizer = Normalizer()
     # fit train
     train_dummy.loc[:,['Age','Fare']] = normalizer.fit_transform(train_dummy.loc[:,['Age','Fare']])
@@ -157,7 +149,6 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     test_dummy.loc[:,['Age','Fare']] = normalizer.transform(test_dummy.loc[:,['Age','Fare']])
     
     # Predict survival
-    from sklearn.ensemble import GradientBoostingClassifier
     clf = GradientBoostingClassifier(n_estimators=hp_gbc_estimators, learning_rate=hp_gbc_learning_rate, max_depth=hp_gbc_max_depth, random_state=0)
     clf.fit(train_dummy, train['Survived'])
     
@@ -204,7 +195,7 @@ c_report = classification_report(gender_submission['Survived'], df_predicted['Su
 print(c_report)
 
 # save the result
-df_predicted.to_csv("result_submission.csv", sep=",", index=False)
+df_predicted.to_csv("submission.csv", sep=",", index=False)
 
 
 
