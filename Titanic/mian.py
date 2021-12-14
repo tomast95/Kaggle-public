@@ -59,6 +59,7 @@ test['Cabin'] = test['Cabin'].apply(lambda x: contained_letter(x))
 
 
 # prepare one-hot-encoded columns
+# In test set we wont know the "survived" feature and "PassengerId" is no use for imputation
 df_train_dummy = pd.get_dummies(train.drop(['Survived','PassengerId'], axis=1))
 df_test_dummy = pd.get_dummies(test.drop(['PassengerId'], axis=1))
 
@@ -69,7 +70,7 @@ df_train_dummy = df_train_dummy.reindex(columns=df_test_dummy.columns, fill_valu
 # age - imputate
 from sklearn.impute import KNNImputer
 imputer = KNNImputer(n_neighbors=5, weights="distance") # distance might be better than "uniform"
-imputer.fit(df_train_dummy) # In test set we wont know the "survived" feature and "PassengerId" is no use for imputation
+imputer.fit(df_train_dummy)
 # train
 train_dummy = pd.DataFrame(imputer.transform(df_train_dummy), columns=df_train_dummy.columns)
 # test
@@ -126,6 +127,7 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     test['Cabin'] = test['Cabin'].apply(lambda x: contained_letter(x))
     
     # prepare one-hot-encoded columns
+    # In test set we wont know the "survived" feature and "PassengerId" is no use for imputation
     df_train_dummy = pd.get_dummies(train.drop(['Survived','PassengerId'], axis=1))
     df_test_dummy = pd.get_dummies(test.drop(['PassengerId'], axis=1))
     
@@ -135,7 +137,7 @@ def opt_fnc(hp_knn_neighbors, hp_gbc_estimators, hp_gbc_learning_rate, hp_gbc_ma
     
     # age - imputate
     imputer = KNNImputer(n_neighbors=hp_knn_neighbors, weights="distance") # distance might be better than "uniform"
-    imputer.fit(df_train_dummy) # In test set we wont know the "survived" feature and "PassengerId" is no use for imputation
+    imputer.fit(df_train_dummy)
     # train
     train_dummy = pd.DataFrame(imputer.transform(df_train_dummy), columns=df_train_dummy.columns)
     # test
